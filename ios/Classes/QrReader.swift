@@ -180,6 +180,9 @@ extension QrReader: AVCaptureVideoDataOutputSampleBufferDelegate {
     // runs on dispatch queue
     
     pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
+    if (pixelBuffer == nil || textureId == nil) {
+        return
+    }
     textureRegistry.textureFrameAvailable(self.textureId)
     
     let metadata = VisionImageMetadata()
