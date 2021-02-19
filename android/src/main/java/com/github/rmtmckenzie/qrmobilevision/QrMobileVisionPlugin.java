@@ -198,6 +198,33 @@ public class QrMobileVisionPlugin implements MethodCallHandler, QrReaderCallback
                 result.success(null);
                 break;
             }
+            case "hasFlashlight": {
+                boolean hasFlash = activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+                Log.w(TAG, "hasFlash: " + hasFlash);
+                result.success(hasFlash);
+                break;
+            }
+            case "flashOn": {
+                if (readingInstance != null && !waitingForPermissionResult) {
+                    readingInstance.reader.flashOn();
+                }
+                result.success(null);
+                break;
+            }
+            case "flashOff": {
+                if (readingInstance != null && !waitingForPermissionResult) {
+                    readingInstance.reader.flashOff();
+                }
+                result.success(null);
+                break;
+            }
+            case "toggleFlash": {
+                if (readingInstance != null && !waitingForPermissionResult) {
+                    readingInstance.reader.toggleFlash();
+                }
+                result.success(null);
+                break;
+            }
             case "heartbeat": {
                 if (readingInstance != null) {
                     readingInstance.reader.heartBeat();

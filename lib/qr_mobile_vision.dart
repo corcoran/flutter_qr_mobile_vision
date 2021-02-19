@@ -9,8 +9,7 @@ class PreviewDetails {
   num sensorOrientation;
   int textureId;
 
-  PreviewDetails(
-      this.width, this.height, this.sensorOrientation, this.textureId);
+  PreviewDetails(this.width, this.height, this.sensorOrientation, this.textureId);
 }
 
 enum BarcodeFormats {
@@ -49,9 +48,8 @@ class QrMobileVision {
     final _formats = formats ?? _defaultBarcodeFormats;
     assert(_formats.length > 0);
 
-    List<String> formatStrings = _formats
-        .map((format) => format.toString().split('.')[1])
-        .toList(growable: false);
+    List<String> formatStrings =
+        _formats.map((format) => format.toString().split('.')[1]).toList(growable: false);
 
     channelReader.setQrCodeHandler(qrCodeHandler);
     var details = await _channel.invokeMethod('start', {
@@ -69,13 +67,28 @@ class QrMobileVision {
     num surfaceHeight = details["surfaceHeight"];
     num surfaceWidth = details["surfaceWidth"];
 
-    return new PreviewDetails(
-        surfaceWidth, surfaceHeight, orientation, textureId);
+    return new PreviewDetails(surfaceWidth, surfaceHeight, orientation, textureId);
   }
 
   static Future stop() {
     channelReader.setQrCodeHandler(null);
     return _channel.invokeMethod('stop').catchError(print);
+  }
+
+  static Future<bool> get hasFlashlight {
+    return _channel.invokeMethod<bool>('hasFlashlight').catchError(print);
+  }
+
+  static Future toggleFlash() {
+    return _channel.invokeMethod('toggleFlash').catchError(print);
+  }
+
+  static Future flashOn() {
+    return _channel.invokeMethod('flashOn').catchError(print);
+  }
+
+  static Future flashOff() {
+    return _channel.invokeMethod('flashOff').catchError(print);
   }
 
   static Future heartbeat() {

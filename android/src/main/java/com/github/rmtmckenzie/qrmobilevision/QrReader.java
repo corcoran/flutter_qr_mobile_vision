@@ -85,6 +85,18 @@ class QrReader {
         qrCamera.stop();
     }
 
+    void flashOn() {
+        qrCamera.turnOnFlashLight();
+    }
+
+    void flashOff() {
+        qrCamera.turnOffFlashLight();
+    }
+
+    void toggleFlash() {
+        qrCamera.toggleFlash();
+    }
+
     void heartBeat() {
         if (heartbeat != null) {
             heartbeat.beat();
