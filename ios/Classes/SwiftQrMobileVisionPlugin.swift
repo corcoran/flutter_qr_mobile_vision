@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import AVFoundation
 import FirebaseMLVision
 
 class MapArgumentReader {
@@ -17,11 +18,10 @@ class MapArgumentReader {
   func int(key: String) -> Int? {
     return (args?[key] as? NSNumber)?.intValue
   }
-
+  
   func stringArray(key: String) -> [String]? {
     return args?[key] as? [String]
   }
-  
 }
 
 public class SwiftQrMobileVisionPlugin: NSObject, FlutterPlugin {
@@ -51,24 +51,24 @@ public class SwiftQrMobileVisionPlugin: NSObject, FlutterPlugin {
         result(FlutterError(code: "ALREADY_RUNNING", message: "Start cannot be called when already running", details: ""))
         return
       }
-
+      
       //      let heartBeatTimeout = argReader.int(key: "heartBeatTimeout")
       
       guard let targetWidth = argReader.int(key: "targetWidth"),
             let targetHeight = argReader.int(key: "targetHeight"),
             let formatStrings = argReader.stringArray(key: "formats") else {
-          result(FlutterError(code: "INVALID_ARGUMENT", message: "Missing a required argument", details: "Expecting targetWidth, targetHeight, formats, and optionally heartbeatTimeout"))
-          return
+        result(FlutterError(code: "INVALID_ARGUMENT", message: "Missing a required argument", details: "Expecting targetWidth, targetHeight, formats, and optionally heartbeatTimeout"))
+        return
       }
-
+      
       let options = VisionBarcodeDetectorOptions(formatStrings: formatStrings)
-            
+      
       reader = QrReader(
         targetWidth: targetWidth,
         targetHeight: targetHeight,
         textureRegistry: textureRegistry,
         options: options) { [unowned self] qr in
-          self.channel.invokeMethod("qrRead", arguments: qr)
+        self.channel.invokeMethod("qrRead", arguments: qr)
       }
       
       reader!.start();
@@ -86,7 +86,71 @@ public class SwiftQrMobileVisionPlugin: NSObject, FlutterPlugin {
     case "heartBeat":
       //      reader?.heartBeat();
       result(nil)
+    case "hasFlashlight":
+      result(self.hasFlashlight())
+      break
+    case "flashOn":
+      self.turnOnFlashLight()
+      result(nil)
+      break
+    case "flashOff":
+      self.turnOffFlashLight()
+      result(nil)
+      break
+    case "toggleFlash":
+      self.toggleFlash()
+      result(nil)
+      break
     default : result(FlutterMethodNotImplemented);
+    }
+  }
+  private func hasFlashlight() -> Bool {
+    guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return false }
+    return device.hasTorch
+  }
+  
+  private func turnOnFlashLight() {
+    guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+    guard device.hasTorch else { return }
+    
+    do {
+      try device.lockForConfiguration()
+      do {
+        try device.setTorchModeOn(level: 1.0)
+      } catch {
+        print(error)
+      }
+      device.unlockForConfiguration()
+    } catch {
+      print(error)
+    }
+  }
+  
+  private func turnOffFlashLight() {
+    guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+    guard device.hasTorch else { return }
+    
+    do {
+      try device.lockForConfiguration()
+      do {
+        device.torchMode = AVCaptureDevice.TorchMode.off
+      } catch {
+        print(error)
+      }
+      device.unlockForConfiguration()
+    } catch {
+      print(error)
+    }
+  }
+  
+  private func toggleFlash() {
+    guard let device = AVCaptureDevice.default(for: AVMediaType.video) else { return }
+    guard device.hasTorch else { return }
+    
+    if (device.torchMode == AVCaptureDevice.TorchMode.off) {
+      turnOnFlashLight()
+    } else if (device.torchMode == AVCaptureDevice.TorchMode.on) {
+      turnOffFlashLight()
     }
   }
 }
